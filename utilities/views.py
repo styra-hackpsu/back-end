@@ -17,6 +17,8 @@ def index(request):
 class FaceDetect(APIView):
     def post(self, request):
         res = services.api.face_detect(request.data.get("path"), request.data.get("choice"))
+        print("FACE DETECT RESULT")
+        print(res)
         obj = UserEmotion(timestamp=timezone.now(), emotions=res)
         obj.save()
         return Response(res)     
