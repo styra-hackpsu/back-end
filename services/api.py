@@ -2,25 +2,22 @@ from services import *
 import json
 
 
-def face_detect(face_image_url: str) -> dict:
+def face_detect(face_image: str, is_local: bool) -> dict:
     '''
     Params:
-        face_image_url: (Needs hosting)
+        is_local: Boolean to denote wether image is available locally or hosted
+        face_image: path of image
     Desc:
     Returns face parameters and emotions
     Need to use detection model 01 for recognising emotions 
     '''
-    image_name = os.path.basename(face_image_url)
-    
-    detected_faces = face_client.face.detect_with_url(url=face_image_url, 
-        detection_model='detection_01', 
-        return_face_id=True, 
-        return_face_landmarks=OK_FACE_LANDMARKS, 
-        return_face_attributes=FACE_ATTR, 
-        recognition_model='recognition_04')
+    if not is_local:
+        detected_faces = face_client.face.detect_with_url(url=face_image, **API_PARAMS) 
+    else:
+        detected_faces = face_client.face.detect_with_stream(image=face_image, **API_PARAMS)
 
     if not detected_faces:
-        raise Exception('No face detected from image {}'.format(image_name))
+        raise Exception('No face detected from image {}'.format(face_image))
 
     res = {
         "id": None,

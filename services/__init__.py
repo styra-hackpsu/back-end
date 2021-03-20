@@ -13,9 +13,16 @@ from azure.cognitiveservices.vision.face import FaceClient
 from msrest.authentication import CognitiveServicesCredentials
 from azure.cognitiveservices.vision.face.models import TrainingStatusType, Person
 
+
 # MODULE VARIABLES
 OK_FACE_LANDMARKS = False
 FACE_ATTR = ['emotion']
+API_PARAMS = dict(detection_model='detection_01', 
+        return_face_id=True, 
+        return_face_landmarks=OK_FACE_LANDMARKS, 
+        return_face_attributes=FACE_ATTR, 
+        recognition_model='recognition_04')
+
 
 # LOAD ENV VARIABLES 
 # Create your own .env file and add SUBS_KEY & ENDPOINT
