@@ -1,6 +1,6 @@
 from services import *
 import json
-
+import requests
 
 def face_detect(face_image: str, is_local: bool) -> json:
     '''
@@ -42,3 +42,51 @@ def face_detect(face_image: str, is_local: bool) -> json:
         break
 
     return res
+
+def detect_change(history_all: list, history_just: list) -> bool:
+
+    def getFullHistoryKeyword(history, count):
+        totol_keywords = {}
+        for link in history:
+            keywords = json.loads(requests.get(YAKE+link+DETAILS).text)
+            keywords = keywords['keywords']
+            for word in keywords:
+                word['ngram'] = stemmer.stem(word['ngram'])
+                
+                # Testing
+                
+                word['score'] = 1/word['score']
+                
+                # Testing
+                
+                if word['ngram'] in totol_keywords:
+                    totol_keywords[word['ngram']] += word['score']
+                else:
+                    totol_keywords[word['ngram']] = word['score']
+        
+        
+        total_keywords = {k: v for k, v in sorted(totol_keywords.items(), key=lambda item: item[1], reverse=True)}
+        
+        top_count = {}
+        
+        for key in total_keywords.keys():
+            top_count[key] = total_keywords[key]
+            
+            if len(top_count) == count:
+                break
+        return top_count
+    
+    keywords_all = getFullHistoryKeyword(history_all, 20)
+    keywords_just = getFullHistoryKeyword(history_just, 5)
+
+    count = 0
+    total = 0
+    for topic in keywords_just:
+        if topic in keywords_all:
+            print(topic)
+            count+=keywords_just[topic]
+        total += keywords_just[topic]
+
+    score = count/total
+    
+    return score > THRESHOLD
