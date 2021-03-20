@@ -1,16 +1,14 @@
-from django.shortcuts import render
-from django.http import HttpResponse
-from django.views.decorators.csrf import csrf_exempt
+from rest_framework.views import APIView
+from rest_framework.response import Response
 
 import services.api
 
 # Create your views here.
 def index(request):
-    return HttpResponse("Services are up & running!")
+    return Response({"status": "Services are up & running!"})
 
-@csrf_exempt
-def face_detect(request):
-    assert (request.method == 'POST')
-    print(request.POST.get("name"))
-    # return HttpResponse(str(services.api.face_detect(path, choice)))
-    return HttpResponse(":(")
+
+
+class FaceDetect(APIView):
+    def post(self, request):
+        return Response(services.api.face_detect(request.data.get("path"), request.data.get("choice")))        
