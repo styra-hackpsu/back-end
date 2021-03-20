@@ -33,6 +33,9 @@ load_dotenv()
 KEY = os.getenv("SUBS_KEY")
 ENDPOINT = os.getenv("ENDPOINT")
 
+TEXT_KEY = os.getenv("TEXT_KEY")
+TEXT_ENDPOINT = os.getenv("TEXT_ENDPOINT")
+
 
 # Create an authenticated FaceClient.
 face_client = FaceClient(ENDPOINT, CognitiveServicesCredentials(KEY))
