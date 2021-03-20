@@ -2,3 +2,8 @@ env/
 .env
 __pycache__/
 .vscode/
+venv/
+.ipynb_checkpoints/
+dataset/test/
+dataset/train/
+dataset/val/

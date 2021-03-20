@@ -1,0 +1,18 @@
+# TODO
+- Encoding and decoding image
+- Save results in db
+- Emoji detection
+- Emotions
+    - Complex
+        - Frustrated
+        - Tired
+        - Sleepy
+    - Simple
+        - Sad
+        - Anger
+        - Disgust
+        - Fear
+        - Happiness
+        - Neutral
+        - Sadness
+        - Surprise

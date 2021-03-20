@@ -1,8 +1,10 @@
-from django.urls import path
+from django.urls import include, path
 
 from . import views
 
 urlpatterns = [
-    path('', views.index, name='index'),
-    path('detect/', views.FaceDetect.as_view(), name='face_detect')
+    path('index/', views.index, name='index'),
+    path('detect/', views.FaceDetect.as_view(), name='face_detect'),
+    path('user-emotions/', views.UserEmotionViewSet.as_view({'get': 'list'})),
+    path('user-keywords/', views.UserKeywordViewSet.as_view({'get': 'list'}))
 ]

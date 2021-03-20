@@ -1,21 +1,13 @@
 # To cross check module: services
 
 import services.api
+import json
 
-# # For images hosted
-# face_image_url = 'https://image.shutterstock.com/image-photo/two-friends-smiling-outside-260nw-371956567.jpg'
-# face = services.api.face_detect(face_image_url, False)
-# print(face['emotion'])
+# For images hosted
+face_image_url = 'https://s3.amazonaws.com/s3.mp-cdn.net/12/ce/901b8f87a0314b4f593f0c33597d-is-obama-just-a-really-sad-person.jpg'
+face = services.api.face_detect(face_image_url, False)
+print(json.dumps(face['emotion']))
 
 # # For images as a stream
 # face_image = open('./services/sample_data/img.jpg', 'rb')
 # face = services.api.face_detect(face_image, True)
-# print(face['emotion'])
-
-import requests
-
-url = 'http://127.0.0.1:8000/utils/detect'
-obj = {'name': 'hh'}
-
-x = requests.post(url, data = obj)
-print(x.text)
