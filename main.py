@@ -11,3 +11,8 @@ print(json.dumps(face['emotion']))
 # # For images as a stream
 # face_image = open('./services/sample_data/img.jpg', 'rb')
 # face = services.api.face_detect(face_image, True)
+
+history_all = ["https://stackoverflow.com/questions/9662346/python-code-to-remove-html-tags-from-a-string"]
+history_just = ["https://stackoverflow.com/questions/30975339/slicing-a-python-ordereddict"]
+
+print(services.api.detect_change(history_all, history_just))
