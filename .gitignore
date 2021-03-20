@@ -7,3 +7,4 @@ venv/
 dataset/test/
 dataset/train/
 dataset/val/
+.DS_Store
