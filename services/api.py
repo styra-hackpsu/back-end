@@ -32,4 +32,4 @@ def face_detect(face_image: str, is_local: bool) -> json:
         res["emotion"] = json.loads(str(face.face_attributes.emotion).replace("\'", "\""))        
         break
 
-    return json.dumps(res)
+    return res
