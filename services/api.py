@@ -11,13 +11,22 @@ def face_detect(face_image: str, is_local: bool) -> json:
     Returns face parameters and emotions
     Need to use detection model 01 for recognising emotions 
     '''
-    if not is_local:
-        detected_faces = face_client.face.detect_with_url(url=face_image, **API_PARAMS) 
-    else:
-        detected_faces = face_client.face.detect_with_stream(image=face_image, **API_PARAMS)
+
+    try:
+        if not is_local:
+            detected_faces = face_client.face.detect_with_url(url=face_image, **API_PARAMS) 
+        else:
+            detected_faces = face_client.face.detect_with_stream(image=face_image, **API_PARAMS)
+    except Exception as e:
+        print("Services Module:", e)
+        if (str(e).find('429') != -1):
+            raise Exception('API LIMIT')
+        else:
+            raise Exception('API FAIL')
 
     if not detected_faces:
-        raise Exception('No face detected from image {}'.format(face_image))
+        print("Services module: NO FACE DETECTED")
+        raise Exception('API FAIL')
 
     res = {
         "id": None,
