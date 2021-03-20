@@ -43,30 +43,37 @@ def face_detect(face_image: str, is_local: bool) -> json:
 
     return res
 
+'''
+Returns 20 most important keywords for given link 
+''' 
+def getKeywords(link):
+   
+    total_keywords = {}
+    keywords = json.loads(requests.get(YAKE+link+DETAILS).text)
+    keywords = keywords['keywords']
+    for word in keywords:
+        word['ngram'] = stemmer.stem(word['ngram'])
+        
+        # Testing
+        
+        word['score'] = 1/word['score']
+        
+        # Testing
+        
+        if word['ngram'] in totol_keywords:
+            totol_keywords[word['ngram']] += word['score']
+        else:
+            totol_keywords[word['ngram']] = word['score']
+    
+    total_keywords = {k: v for k, v in sorted(totol_keywords.items(), key=lambda item: item[1], reverse=True)}
+    
+    return total_keywords 
+
+
 def detect_change(history_all: list, history_just: list) -> bool:
 
     def getFullHistoryKeyword(history, count):
-        totol_keywords = {}
-        for link in history:
-            keywords = json.loads(requests.get(YAKE+link+DETAILS).text)
-            keywords = keywords['keywords']
-            for word in keywords:
-                word['ngram'] = stemmer.stem(word['ngram'])
-                
-                # Testing
-                
-                word['score'] = 1/word['score']
-                
-                # Testing
-                
-                if word['ngram'] in totol_keywords:
-                    totol_keywords[word['ngram']] += word['score']
-                else:
-                    totol_keywords[word['ngram']] = word['score']
-        
-        
-        total_keywords = {k: v for k, v in sorted(totol_keywords.items(), key=lambda item: item[1], reverse=True)}
-        
+
         top_count = {}
         
         for key in total_keywords.keys():
