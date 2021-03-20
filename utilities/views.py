@@ -13,7 +13,6 @@ from .serializers import UserEmotionSerializer, UserKeywordSerializer
 def index(request):
     return HttpResponse("OK")
 
-
 class FaceDetect(APIView):
     def post(self, request):
         res = services.api.face_detect(request.data.get("path"), request.data.get("choice"))
@@ -21,7 +20,11 @@ class FaceDetect(APIView):
         obj.save()
         return Response(res)     
 
-
+# Post request to update the database returns update status
+class ChangeDetect(APIView):
+    def post(self, request):
+        res = UserKeyword.objects.all().order_by('-timestamp')
+        
 
 class UserEmotionViewSet(viewsets.ModelViewSet):
     queryset = UserEmotion.objects.all().order_by('timestamp')
