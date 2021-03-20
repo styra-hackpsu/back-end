@@ -4,9 +4,9 @@ import services.api
 import json
 
 # For images hosted
-face_image_url = 'https://image.shutterstock.com/image-photo/two-friends-smiling-outside-260nw-371956567.jpg'
+face_image_url = 'https://s3.amazonaws.com/s3.mp-cdn.net/12/ce/901b8f87a0314b4f593f0c33597d-is-obama-just-a-really-sad-person.jpg'
 face = services.api.face_detect(face_image_url, False)
-print(json.loads(face)['emotion']['happiness'])
+print(json.dumps(json.loads(face)['emotion']))
 
 # # For images as a stream
 # face_image = open('./services/sample_data/img.jpg', 'rb')
