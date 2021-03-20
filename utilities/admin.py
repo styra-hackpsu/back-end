@@ -1,6 +1,6 @@
 from django.contrib import admin
-from .models import UserEmotions, UserKeywords
+from .models import UserEmotion, UserKeyword
 
 # Register your models here.
-admin.site.register(UserEmotions)
-admin.site.register(UserKeywords)
+admin.site.register(UserEmotion)
+admin.site.register(UserKeyword)
