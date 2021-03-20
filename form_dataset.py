@@ -8,8 +8,8 @@ import pandas as pd
 # PARAMS
 SLEEP_TIME = 1.2
 CLASSES = {"alert": 0, "non_vigilant": 1, "tired": 2}
-DIR = "tired" # TRAINING CLASS
-MODE = "test"
+DIR = "alert" # TRAINING CLASS
+MODE = "train"
 OUTFILE = f"./dataset/{DIR}_{MODE}.csv"
 
 # FINAL RESULT
