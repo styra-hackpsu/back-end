@@ -9,7 +9,7 @@ import pandas as pd
 SLEEP_TIME = 1.2
 CLASSES = {"alert": 0, "non_vigilant": 1, "tired": 2}
 DIR = "non_vigilant" # TRAINING CLASS
-MODE = "train"
+MODE = "test"
 OUTFILE = f"./dataset/{DIR}_{MODE}.csv"
 
 # FINAL RESULT
