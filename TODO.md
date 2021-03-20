@@ -2,7 +2,7 @@
 - Encoding and decoding image
 - Save results in db
 - Emoji detection
-- Emotions
+- Emotions (Need a MOdel)
     - Complex
         - Frustrated
         - Tired
@@ -16,3 +16,5 @@
         - Neutral
         - Sadness
         - Surprise
+- Context switch management in db ? Reset history ? 
+- History Just and History all size calibration, edge cases

@@ -60,9 +60,9 @@ def getKeywords(link):
         
         # Testing
 
-        totol_keywords[word['ngram']] = word['score']
+        total_keywords[word['ngram']] = word['score']
     
-    total_keywords = {k: v for k, v in sorted(totol_keywords.items(), key=lambda item: item[1], reverse=True)}
+    total_keywords = {k: v for k, v in sorted(total_keywords.items(), key=lambda item: item[1], reverse=True)}
     
     return total_keywords 
 
