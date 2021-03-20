@@ -2,7 +2,7 @@ from services import *
 import json
 
 
-def face_detect(face_image: str, is_local: bool) -> dict:
+def face_detect(face_image: str, is_local: bool) -> json:
     '''
     Params:
         is_local: Boolean to denote wether image is available locally or hosted
@@ -32,4 +32,4 @@ def face_detect(face_image: str, is_local: bool) -> dict:
         res["emotion"] = json.loads(str(face.face_attributes.emotion).replace("\'", "\""))        
         break
 
-    return res
+    return json.dumps(res)
