@@ -103,6 +103,10 @@ def detect_change(history_all: dict, history_just: dict) -> bool:
 
     count = 0
     total = 0
+
+    if total == 0:
+        return false
+
     for topic in keywords_just:
         if topic in keywords_all:
             print(topic)
