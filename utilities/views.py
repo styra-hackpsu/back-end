@@ -142,6 +142,7 @@ RETURN FORMAT FOR ANALYSIS
     {
         "timestamp": --,
         "context-switch: --, (True/False)
+        "url": --
     }
 ],
 "user-emotions": [
@@ -169,7 +170,8 @@ def get_analysis_data(request):
         for obj in objs1:
             res["user-keywords"].append({
                 "timestamp": str(obj.timestamp),
-                "context-switch": obj.response
+                "context-switch": obj.response,
+                "url": str(obj.url)
             })
 
         # get user emotions
