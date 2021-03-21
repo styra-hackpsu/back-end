@@ -6,11 +6,14 @@ from rest_framework import viewsets
 from rest_framework import permissions
 import json
 import datetime
+from django.utils import timezone
 
 import services.api
 from .models import UserEmotion, UserKeyword
 from .serializers import UserEmotionSerializer, UserKeywordSerializer
 
+
+PREDICTION = {0: "alert",  1: "non_vigilant",  2: "tired"}
 
 # send pk to record response later
 class FaceDetect(APIView):
@@ -23,7 +26,8 @@ class FaceDetect(APIView):
         print(res)
         
         # TODO: INCLUDE MODEL HERE
-        model_prediction = "alert"
+        model_result = 1
+        model_prediction = PREDICTION[model_result]
         print("MODEL PREDICTION", model_prediction)
 
         obj = UserEmotion(timestamp=timezone.now(), emotions=res, prediction=model_prediction)
@@ -151,7 +155,7 @@ RETURN FORMAT FOR ANALYSIS
 
 def get_analysis_data(request):
     try:
-        cur_date = datetime.date.today()
+        cur_date = timezone.now()
         prev_date = cur_date - datetime.timedelta(days=1)
         
         res = {
@@ -160,9 +164,25 @@ def get_analysis_data(request):
         }
         
         # get user keywords
-        objs1= UserKeyword.objects.filter(timestamp__range=[prev_date, cur_date])
+        objs1 = UserKeyword.objects.filter(timestamp__range=[prev_date, cur_date]).order_by('timestamp')
         for obj in objs1:
-            print(obj)
+            res["user-keywords"].append({
+                "timestamp": str(obj.timestamp),
+                "context-switch": obj.response
+            })
+
+        # get user emotions
+        objs2 = UserEmotion.objects.filter(timestamp__range=[prev_date, cur_date]).order_by('timestamp')
+        for obj in objs2:
+            res["user-emotions"].append({
+                "timestamp": str(obj.timestamp),
+                "simple-emotions": obj.emotions["emotion"],
+                "complex-emotions": obj.prediction
+            })
+
+        print("ANALYSIS RESULT")
+        print(res)
+        return HttpResponse(json.dumps(res))
     except Exception as e:
         print(e)
 
