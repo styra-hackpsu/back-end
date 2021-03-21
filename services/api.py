@@ -75,7 +75,7 @@ def getKeywords(link):
 
 def detect_change(history_all: dict, history_just: dict) -> bool:
 
-    def getFullHistoryKeyword(history, count):
+    def getFullHistoryKeyword(history, count, min_val):
 
         top_all = {}
         for link in history:
@@ -96,22 +96,42 @@ def detect_change(history_all: dict, history_just: dict) -> bool:
             
             if len(top_count) == count:
                 break
+
+        top_count2 = {}
+
+        for key in top_all.keys():
+            if top_all[key] > min_val:
+                top_count2[key] = top_all[key]
+        
+        if len(top_count2) > len(top_count):
+            return top_count2
+
         return top_count
-    
-    keywords_all = getFullHistoryKeyword(history_all, 20)
-    keywords_just = getFullHistoryKeyword(history_just, 5)
+
+    # Possible improvement
+    # Instead of top x values take all values with greater than x
+    # Take all above and MIN_VAL
+    MIN_VAL = 10           
+    keywords_all = getFullHistoryKeyword(history_all, 50, MIN_VAL)
+    keywords_just = getFullHistoryKeyword(history_just, 10, MIN_VAL)
 
     count = 0
     total = 0
 
-    if total == 0:
-        return false
+    print("KEYWORDS ALL")
+    print(keywords_all)
+    print("KEYWORDS JUST")
+    print(keywords_just)
 
     for topic in keywords_just:
         if topic in keywords_all:
             print(topic)
             count+=keywords_just[topic]
         total += keywords_just[topic]
+
+    if total == 0:
+        print("TOTAL is zero")
+        return False
 
     score = count/total
     print(score) 

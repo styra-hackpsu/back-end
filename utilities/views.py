@@ -21,6 +21,13 @@ from .serializers import UserEmotionSerializer, UserKeywordSerializer
 
 PREDICTION = {0: "alert",  1: "non_vigilant",  2: "tired"}
 ORDER_EMOTIONS = ['anger','contempt','disgust','fear','happiness','neutral','sadness','surprise']
+FILE_PATH = './utilities/storage.txt'
+# Segregation between history just and history all
+JUST_LIM = 4
+ALL_LIM = 24
+MIN_ALL_LIM = 10
+
+
 
 # send pk to record response later
 class FaceDetect(APIView):
@@ -62,23 +69,22 @@ class ChangeDetect(APIView):
         '''
         RETURNS res object
         '''
-        # Segregation between history just and history all
-        JUST_LIM = 4
-        ALL_LIM = 24
-        MIN_ALL_LIM = 10
-
         res = UserKeyword.objects.all().order_by('-timestamp')[:ALL_LIM]
 
         # Min 3 Max 5 after Min 10 in history_all
-        JUST_LIM = min(max(2, len(res) - MIN_ALL_LIM), 4)
         
+        CUR_LIM = min(max(2, len(res) - MIN_ALL_LIM), JUST_LIM)
+        
+        print(CUR_LIM, len(res))
+
+
         # maps a url to its json keywords
         history_all = dict()
-        for obj in res[JUST_LIM:]:
+        for obj in res[CUR_LIM:]:
             history_all[obj.url] = json.loads(obj.keywords)
-        
+       
         history_just = dict()
-        for obj in res[:JUST_LIM]:
+        for obj in res[:CUR_LIM]:
             history_just[obj.url] = json.loads(obj.keywords)
 
         try:
@@ -88,18 +94,25 @@ class ChangeDetect(APIView):
             print(f"Exception in get_keywords: {e}")
             return Response({'error': "Could not get keywords."}, status = status.HTTP_400_BAD_REQUEST)
 
+        with open(FILE_PATH, "r+") as f:
+            data = f.read()
+            if data == '':
+                data = 0        # CP++
+            data = int(data)
+            f.seek(0)
+            f.write(str(data - 1))
+            f.truncate()
 
-
-        if len(res) < 10:
+        if len(res) < MIN_ALL_LIM  or data > 0:
             # Not Enough Data
-            print("Not Enough Data")
+            print("Not Enough Data") 
             change_detected = False
         else:
             change_detected = services.api.detect_change(history_all=history_all, history_just=history_just)
             print("HISTORY ALL")
-            print(history_all)
+            print(history_all, len(history_all))
             print("HISTORY JUST")
-            print(history_just)
+            print(history_just, len(history_just))
 
         new_obj = UserKeyword(timestamp=timezone.now(), keywords=json.dumps(current_keywords), url=request.data.get("url"), prediction=change_detected)
         new_obj.save()
@@ -107,6 +120,8 @@ class ChangeDetect(APIView):
         res = {"pk": new_obj.pk, "change_detected": change_detected}
         print("CHANGE DETECT RESULT")
         print(res)       
+
+
 
         return Response(res)
 
@@ -159,6 +174,16 @@ def update_user_keyword_response(request, pk, response):
     try:
         obj = UserKeyword.objects.get(pk=pk)
         obj.response = response
+        
+        if response == "Yes":
+            # Delete last JUST_LIM from UserKeyword
+            pass
+        else:
+            # Pause the Change Detect Until next JUST_LIM tab openings
+            f = open(FILE_PATH, 'w')
+            f.write(str(JUST_LIM + 1))
+            f.close()
+
         print("RESPONSE FOR USER KEYWORD", obj.pk, "IS", obj.response)
         obj.save()
     except Exception as e:
