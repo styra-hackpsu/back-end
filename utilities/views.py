@@ -5,14 +5,16 @@ from rest_framework.response import Response
 from rest_framework import viewsets
 from rest_framework import permissions
 from rest_framework import status
+from django.utils import timezone
 
 import math
 import json
 import datetime
-from django.utils import timezone
+import random
 
 import services.api
 import services.emotion_model.model
+import services.responses
 from .models import UserEmotion, UserKeyword
 from .serializers import UserEmotionSerializer, UserKeywordSerializer
 
@@ -21,19 +23,24 @@ from .serializers import UserEmotionSerializer, UserKeywordSerializer
 
 PREDICTION = {0: "alert",  1: "non_vigilant",  2: "tired"}
 ORDER_EMOTIONS = ['anger','contempt','disgust','fear','happiness','neutral','sadness','surprise']
-FILE_PATH = './utilities/storage.txt'
+# To store singular counts
+CHANGE_DETECT_FILE_PATH = './utilities/change_detect_data.txt'
+FACE_DETECT_FILE_PATH = './utilities/face_detect_data.txt'
+# Emotion Call Count Check
+FACE_DETECT_CALL_COUNT = 6
+FACE_DETECT_CALL_THRESHOLD = 0.1 #CHANGE
 # Segregation between history just and history all
 JUST_LIM = 4
 ALL_LIM = 24
 MIN_ALL_LIM = 10
 
 
-
 # send pk to record response later
 class FaceDetect(APIView):
     def post(self, request):
         '''
-        RETURNS res object (See db for sample return under USER EMOTION) (API Call from services/api/face_detect)
+        RECORDS res object (See db for sample return under USER EMOTION) (API Call from services/api/face_detect)
+        RETURNS fres (with remedy and emotion)
         '''
         try:
             res = services.api.face_detect(request.data.get("path"), request.data.get("choice"))
@@ -60,7 +67,47 @@ class FaceDetect(APIView):
         res["pk"] = obj.pk
         res["complex-emotion"] = model_prediction
 
-        return Response(res)     
+        with open(FACE_DETECT_FILE_PATH, "r+") as f:
+            data = f.read()
+            if data == '':
+                data = 1
+            data = int(data)
+            f.seek(0)
+            f.write(str((data + 1) % FACE_DETECT_CALL_COUNT))
+            f.truncate()
+
+        fres = {
+            "status": "OK",
+            "content": "Entry added to DB",
+            "got_emotion": False,
+            "timestamp": str(timezone.now())
+        }
+
+        # extract the top emotion
+        if data == 0:
+            print("FACE DETECT CALL COUNT REACHED")
+            objlist = UserEmotion.objects.all().order_by('-timestamp')[:FACE_DETECT_CALL_COUNT]
+            rankings = {}
+            for x in ORDER_EMOTIONS:
+                rankings[x] = 0
+            for obj in objlist:
+                for cur in obj.emotions["emotion"]:
+                    if cur == "additional_properties":
+                        continue
+                    x = obj.emotions["emotion"][cur]
+                    rankings[cur] += (x / len(objlist))
+            major_emotion = sorted(rankings.items(), key=lambda item: item[1], reverse=True)[0]
+            print("MAJOR EMOTION", major_emotion)
+            if (major_emotion[1] > FACE_DETECT_CALL_THRESHOLD):
+                print("THRESHOLD CAPTURED")
+                fres["got_emotion"] = True
+                fres["emotion"] = major_emotion[0]
+                fres["quote"] = random.choice(services.responses.singled_responses[fres["emotion"]])
+
+        print("FINAL RESPONSE")
+        print(fres)
+
+        return Response(fres)     
 
 
 # send pk to record response later
@@ -81,11 +128,11 @@ class ChangeDetect(APIView):
         # maps a url to its json keywords
         history_all = dict()
         for obj in res[CUR_LIM:]:
-            history_all[obj.url] = json.loads(obj.keywords)
+            history_all[obj.url] = obj.keywords
        
         history_just = dict()
         for obj in res[:CUR_LIM]:
-            history_just[obj.url] = json.loads(obj.keywords)
+            history_just[obj.url] = obj.keywords
 
         try:
             current_keywords = services.api.getKeywords(request.data.get("url"))
@@ -94,7 +141,7 @@ class ChangeDetect(APIView):
             print(f"Exception in get_keywords: {e}")
             return Response({'error': "Could not get keywords."}, status = status.HTTP_400_BAD_REQUEST)
 
-        with open(FILE_PATH, "r+") as f:
+        with open(CHANGE_DETECT_FILE_PATH, "r+") as f:
             data = f.read()
             if data == '':
                 data = 0        # CP++
@@ -114,14 +161,12 @@ class ChangeDetect(APIView):
             print("HISTORY JUST")
             print(history_just, len(history_just))
 
-        new_obj = UserKeyword(timestamp=timezone.now(), keywords=json.dumps(current_keywords), url=request.data.get("url"), prediction=change_detected)
+        new_obj = UserKeyword(timestamp=timezone.now(), keywords=current_keywords, url=request.data.get("url"), prediction=change_detected)
         new_obj.save()
  
         res = {"pk": new_obj.pk, "change_detected": change_detected}
         print("CHANGE DETECT RESULT")
         print(res)       
-
-
 
         return Response(res)
 
@@ -180,7 +225,7 @@ def update_user_keyword_response(request, pk, response):
             pass
         else:
             # Pause the Change Detect Until next JUST_LIM tab openings
-            f = open(FILE_PATH, 'w')
+            f = open(CHANGE_DETECT_FILE_PATH, 'w')
             f.write(str(JUST_LIM + 1))
             f.close()
 
