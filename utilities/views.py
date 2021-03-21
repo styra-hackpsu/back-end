@@ -175,7 +175,7 @@ RETURN FORMAT FOR ANALYSIS
 {"user-keywords": [
     {
         "timestamp": --,
-        "context-switch: --, (True/False)
+        "context-switch: --, (Yes/No/None)
         "url": --
     }
 ],
