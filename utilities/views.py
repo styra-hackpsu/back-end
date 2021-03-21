@@ -35,7 +35,7 @@ ALL_LIM = 24
 MIN_ALL_LIM = 10
 # Neutral emotion bias
 NEUTRAL_BIAS = 3
-MODEL_CHECK_THRESHOLD = 0.85
+MODEL_CHECK_THRESHOLD = 0.90
 
 
 # send pk to record response later
