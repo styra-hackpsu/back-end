@@ -10,20 +10,26 @@ import services.api
 from .models import UserEmotion, UserKeyword
 from .serializers import UserEmotionSerializer, UserKeywordSerializer
 
-# Create your views here.
-def index(request):
-    return HttpResponse("OK")
 
+# send pk to record response later
 class FaceDetect(APIView):
     def post(self, request):
         res = services.api.face_detect(request.data.get("path"), request.data.get("choice"))
         print("FACE DETECT RESULT")
         print(res)
-        obj = UserEmotion(timestamp=timezone.now(), emotions=res)
+        
+        # TODO: INCLUDE MODEL HERE
+        model_prediction = "alert"
+        print("MODEL PREDICTION", model_prediction)
+
+        obj = UserEmotion(timestamp=timezone.now(), emotions=res, prediction=model_prediction)
         obj.save()
+        res["pk"] = obj.pk;
+
         return Response(res)     
 
 
+# send pk to record response later
 class ChangeDetect(APIView):
     def post(self, request):
 
@@ -43,8 +49,10 @@ class ChangeDetect(APIView):
 
         current_keywords = services.api.getKeywords(request.data.get("url"))
         history_just[request.data.get("url")] = current_keywords
+
+        change_detected = services.api.detect_change(history_all=history_all, history_just=history_just)
         
-        new_obj = UserKeyword(timestamp=timezone.now(), keywords=json.dumps(current_keywords), url=request.data.get("url"))
+        new_obj = UserKeyword(timestamp=timezone.now(), keywords=json.dumps(current_keywords), url=request.data.get("url"), prediction=change_detected)
         new_obj.save()
 
         print("HISTORY ALL")
@@ -52,15 +60,48 @@ class ChangeDetect(APIView):
         print("HISTORY JUST")
         print(history_just)
 
-        res = {"change_detected": services.api.detect_change(history_all=history_all, history_just=history_just)}
+        res = {"pk": new_obj.pk, "change_detected": change_detected}
+        print("CHANGE DETECT RESULT")
+        print(res)
+
         return Response(res)
 
         
 class UserEmotionViewSet(viewsets.ModelViewSet):
-    queryset = UserEmotion.objects.all().order_by('timestamp')
+    queryset = UserEmotion.objects.all().order_by('-timestamp')
     serializer_class = UserEmotionSerializer
 
 
 class UserKeywordViewSet(viewsets.ModelViewSet):
-    queryset = UserKeyword.objects.all().order_by('timestamp')
+    queryset = UserKeyword.objects.all().order_by('-timestamp')
     serializer_class = UserKeywordSerializer
+
+
+def index(request):
+    return HttpResponse("OK")
+
+
+# update user emotion response with GET
+def update_user_emotion_response(request, pk, response):
+    try:
+        obj = UserEmotion.objects.get(pk=pk)
+        obj.response = response
+        print("RESPONSE FOR USER EMOTION", obj.pk, "IS", obj.response)
+        obj.save()
+    except Exception as e:
+        print(e)
+        return HttpResponse("FAIL")
+    return HttpResponse("OK")
+
+
+# update user keyword response with GET
+def update_user_keyword_response(request, pk, response):
+    try:
+        obj = UserKeyword.objects.get(pk=pk)
+        obj.response = response
+        print("RESPONSE FOR USER KEYWORD", obj.pk, "IS", obj.response)
+        obj.save()
+    except Exception as e:
+        print(e)
+        return HttpResponse("FAIL")
+    return HttpResponse("OK")
