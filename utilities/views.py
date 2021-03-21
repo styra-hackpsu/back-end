@@ -182,7 +182,7 @@ RETURN FORMAT FOR ANALYSIS
     {
         "timestamp": --,
         "simple-emotions": {"additional_properties": {}, "anger": 0.0, "contempt": 0.0, "disgust": 0.0, "fear": 0.0, "happiness": 1.0, "neutral": 0.0, "sadness": 0.0, "surprise": 0.0},
-        "complex-emotions": choice from ['non_vigilant', 'tired', 'alert']
+        "complex-emotions": {tired: , non_vigilant: , alert: }
     }
 ]
 }
