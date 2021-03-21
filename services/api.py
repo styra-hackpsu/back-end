@@ -53,7 +53,11 @@ def face_detect(face_image: str, is_local: bool) -> json:
         res["rectangle"] = json.loads(str(face.face_rectangle).replace("\'", "\""))
         res["emotion"] = json.loads(str(face.face_attributes.emotion).replace("\'", "\""))        
         break
-
+    
+    try:
+        res["emotion"].pop("additional_properties")
+    except:
+        print("FAILED ADDITIONAL PROPERTIES DELETE IN FACE DETECT API")
     return res
 
 '''

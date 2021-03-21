@@ -33,6 +33,9 @@ FACE_DETECT_CALL_THRESHOLD = 0.1 #CHANGE
 JUST_LIM = 4
 ALL_LIM = 24
 MIN_ALL_LIM = 10
+# Neutral emotion bias
+NEUTRAL_BIAS = 3
+MODEL_CHECK_THRESHOLD = 0.85
 
 
 # send pk to record response later
@@ -62,10 +65,20 @@ class FaceDetect(APIView):
         print("MODEL RESULT", list(model_result))
         print("MODEL PREDICTION", model_prediction)
 
+        res["complex-emotion"] = model_prediction
         obj = UserEmotion(timestamp=timezone.now(), emotions=res, prediction=model_prediction)
         obj.save()
         res["pk"] = obj.pk
-        res["complex-emotion"] = model_prediction
+        
+        # # EXTRACT TOP EMOTION
+        # emotions_complex = list(res["complex-emotion"].items())
+        # emotions_simple = list(res["emotion"].items())
+        # emotions_complex = sorted(emotions_complex, key=lambda item: item[1], reverse=True)
+        # emotions_simple = sorted(emotions_simple, key=lambda item: item[1], reverse=True)
+        # print("EMOTIONS COMPLEX")
+        # print(emotions_complex)
+        # print("EMOTIONS SIMPLE")
+        # print(emotions_simple) 
 
         with open(FACE_DETECT_FILE_PATH, "r+") as f:
             data = f.read()
@@ -96,17 +109,33 @@ class FaceDetect(APIView):
                 rankings[x] = 0
             for obj in objlist:
                 for cur in obj.emotions["emotion"]:
-                    if cur == "additional_properties":
-                        continue
                     x = obj.emotions["emotion"][cur]
-                    rankings[cur] += (x / len(objlist))
+                    if cur == "neutral":
+                        x /= NEUTRAL_BIAS
+                    rankings[cur] = max(rankings[cur], x)
             major_emotion = sorted(rankings.items(), key=lambda item: item[1], reverse=True)[0]
             print("MAJOR EMOTION", major_emotion)
+            fres["got_emotion"] = True
+            fres["emotion"] = []
+            fres["quote"] = []
             if (major_emotion[1] > FACE_DETECT_CALL_THRESHOLD):
                 print("THRESHOLD CAPTURED")
-                fres["got_emotion"] = True
-                fres["emotion"] = major_emotion[0]
-                fres["quote"] = random.choice(services.responses.singled_responses[fres["emotion"]])
+                fres["emotion"].append(major_emotion[0])
+                fres["quote"].append(random.choice(services.responses.singled_responses[major_emotion[0]]))
+            
+            if (major_emotion[1] < MODEL_CHECK_THRESHOLD):
+                crankings = {}
+                for x in list(PREDICTION.values()):
+                    crankings[x] = 0
+                for obj in objlist:
+                    for cur in obj.emotions["complex-emotion"]:
+                        x = obj.emotions["complex-emotion"][cur]
+                        crankings[cur] += (x / len(PREDICTION))
+                major_cemotion = sorted(crankings.items(), key=lambda item: item[1], reverse=True)[0]
+                print("MAJOR COMPLEX EMOTION", major_cemotion)
+                fres["emotion"].append(major_cemotion[0])
+                fres["quote"].append(random.choice(services.responses.singled_responses[major_cemotion[0]]))
+
 
         print("FINAL RESPONSE")
         print(fres)
