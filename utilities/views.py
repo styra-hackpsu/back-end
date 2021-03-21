@@ -4,6 +4,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import viewsets
 from rest_framework import permissions
+import math
 import json
 import datetime
 
@@ -42,8 +43,13 @@ class ChangeDetect(APIView):
         # Segregation between history just and history all
         JUST_LIM = 4
         ALL_LIM = 24
+        MIN_ALL_LIM = 10
 
         res = UserKeyword.objects.all().order_by('-timestamp')[:ALL_LIM]
+
+        # Min 3 Max 5 after Min 10 in history_all
+        JUST_LIM = min(max(2, len(res) - MIN_ALL_LIM), 4)
+        
         # maps a url to its json keywords
         history_all = dict()
         for obj in res[JUST_LIM:]:
@@ -55,6 +61,12 @@ class ChangeDetect(APIView):
 
         current_keywords = services.api.getKeywords(request.data.get("url"))
         history_just[request.data.get("url")] = current_keywords
+        
+        if len(res) < 10:
+            res = {"change_detected": "Not Enough Data"}
+            print("CHANGE DETECT RESULT")
+            print(res)       
+            return Response(res)
 
         change_detected = services.api.detect_change(history_all=history_all, history_just=history_just)
         

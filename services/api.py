@@ -49,7 +49,13 @@ Returns 20 most important keywords for given link
 def getKeywords(link):
    
     total_keywords = {}
-    keywords = json.loads(requests.get(YAKE+link+DETAILS).text)
+
+    try:
+        keywords = json.loads(requests.get(YAKE+link+DETAILS).text)
+    except Exception as err:
+        print("Non Compatible link. {}".format(err))
+        raise Exception("FAIL")
+
     keywords = keywords['keywords']
     for word in keywords:
         word['ngram'] = stemmer.stem(word['ngram'])
@@ -99,11 +105,11 @@ def detect_change(history_all: dict, history_just: dict) -> bool:
     total = 0
     for topic in keywords_just:
         if topic in keywords_all:
-            #print(topic)
+            print(topic)
             count+=keywords_just[topic]
         total += keywords_just[topic]
 
     score = count/total
-   
-    return score > THRESHOLD
+    print(score) 
+    return score < THRESHOLD
 
