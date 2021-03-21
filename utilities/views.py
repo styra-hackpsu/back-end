@@ -83,6 +83,10 @@ class FaceDetect(APIView):
             "timestamp": str(timezone.now())
         }
 
+        print("FACE DETECT DATA COUNT")
+        print("DATA", data)
+        print("TOTAL COUNT", FACE_DETECT_CALL_COUNT)
+
         # extract the top emotion
         if data == 0:
             print("FACE DETECT CALL COUNT REACHED")
