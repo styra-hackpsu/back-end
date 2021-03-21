@@ -23,6 +23,7 @@ from .serializers import UserEmotionSerializer, UserKeywordSerializer
 
 PREDICTION = {0: "alert",  1: "non_vigilant",  2: "tired"}
 ORDER_EMOTIONS = ['anger','contempt','disgust','fear','happiness','neutral','sadness','surprise']
+ALERT_EMOTIONS = ['anger', 'sadness', 'non_vigilant', 'tired']
 # To store singular counts
 CHANGE_DETECT_FILE_PATH = './utilities/change_detect_data.txt'
 FACE_DETECT_FILE_PATH = './utilities/face_detect_data.txt'
@@ -118,24 +119,26 @@ class FaceDetect(APIView):
             fres["got_emotion"] = True
             fres["emotion"] = []
             fres["quote"] = []
-            if (major_emotion[1] > FACE_DETECT_CALL_THRESHOLD):
+            if (major_emotion[1] > FACE_DETECT_CALL_THRESHOLD) and (major_emotion[0] in ALERT_EMOTIONS):
                 print("THRESHOLD CAPTURED")
                 fres["emotion"].append(major_emotion[0])
                 fres["quote"].append(random.choice(services.responses.singled_responses[major_emotion[0]]))
             
-            if (major_emotion[1] < MODEL_CHECK_THRESHOLD):
-                crankings = {}
-                for x in list(PREDICTION.values()):
-                    crankings[x] = 0
-                for obj in objlist:
-                    for cur in obj.emotions["complex-emotion"]:
-                        x = obj.emotions["complex-emotion"][cur]
-                        crankings[cur] += (x / len(PREDICTION))
-                major_cemotion = sorted(crankings.items(), key=lambda item: item[1], reverse=True)[0]
+            crankings = {}
+            for x in list(PREDICTION.values()):
+                crankings[x] = 0
+            for obj in objlist:
+                for cur in obj.emotions["complex-emotion"]:
+                    x = obj.emotions["complex-emotion"][cur]
+                    crankings[cur] += (x / len(PREDICTION))
+            major_cemotion = sorted(crankings.items(), key=lambda item: item[1], reverse=True)[0]
+            if major_cemotion[0] in ALERT_EMOTIONS:
                 print("MAJOR COMPLEX EMOTION", major_cemotion)
                 fres["emotion"].append(major_cemotion[0])
                 fres["quote"].append(random.choice(services.responses.singled_responses[major_cemotion[0]]))
-
+            
+            # IF NOT FOUND
+            fres["got_emotion"] = fres["got_emotion"] and (len(fres["emotion"]) == 0)
 
         print("FINAL RESPONSE")
         print(fres)
