@@ -4,6 +4,8 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import viewsets
 from rest_framework import permissions
+from rest_framework import status
+
 import math
 import json
 import datetime
@@ -26,7 +28,13 @@ class FaceDetect(APIView):
         '''
         RETURNS res object (See db for sample return under USER EMOTION) (API Call from services/api/face_detect)
         '''
-        res = services.api.face_detect(request.data.get("path"), request.data.get("choice"))
+        try:
+            res = services.api.face_detect(request.data.get("path"), request.data.get("choice"))
+        except Exception as e:
+            print(f"Exception in face_detect: {e}")
+            return Response({'error': "Could not detect faces."}, status = status.HTTP_400_BAD_REQUEST)
+        
+
         print("FACE DETECT RESULT")
         print(res)
         
@@ -42,7 +50,7 @@ class FaceDetect(APIView):
 
         obj = UserEmotion(timestamp=timezone.now(), emotions=res, prediction=model_prediction)
         obj.save()
-        res["pk"] = obj.pk;
+        res["pk"] = obj.pk
         res["complex-emotion"] = model_prediction
 
         return Response(res)     
@@ -73,8 +81,13 @@ class ChangeDetect(APIView):
         for obj in res[:JUST_LIM]:
             history_just[obj.url] = json.loads(obj.keywords)
 
-        current_keywords = services.api.getKeywords(request.data.get("url"))
-        history_just[request.data.get("url")] = current_keywords
+        try:
+            current_keywords = services.api.getKeywords(request.data.get("url"))
+            history_just[request.data.get("url")] = current_keywords
+        except Exception as e:
+            print(f"Exception in get_keywords: {e}")
+            return Response({'error': "Could not get keywords."}, status = status.HTTP_400_BAD_REQUEST)
+        
         
         if len(res) < 10:
             res = {"change_detected": "Not Enough Data"}
