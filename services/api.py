@@ -1,6 +1,18 @@
 from services import *
-import json
-import requests
+import json, requests, base64, io
+
+
+def get_image_stream(data):
+    data = data.split(',')[1]
+    byte_stream = None
+    
+    try:
+        byte_stream = io.BytesIO(base64.b64decode(data))
+    except Exception as e:
+        byte_stream = io.BytesIO(base64.b64decode(data + '==='))
+
+    return byte_stream
+
 
 def face_detect(face_image: str, is_local: bool) -> json:
     '''
@@ -16,7 +28,8 @@ def face_detect(face_image: str, is_local: bool) -> json:
         if not is_local:
             detected_faces = face_client.face.detect_with_url(url=face_image, **API_PARAMS) 
         else:
-            detected_faces = face_client.face.detect_with_stream(image=face_image, **API_PARAMS)
+            detected_faces = face_client.face.detect_with_stream(image=get_image_stream(face_image), **API_PARAMS)
+    
     except Exception as e:
         print("Services Module:", e)
         if (str(e).find('429') != -1):
