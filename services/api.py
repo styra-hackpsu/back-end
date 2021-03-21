@@ -16,6 +16,7 @@ def face_detect(face_image: str, is_local: bool) -> json:
         if not is_local:
             detected_faces = face_client.face.detect_with_url(url=face_image, **API_PARAMS) 
         else:
+            # DECODE BASE 64 HERE 
             detected_faces = face_client.face.detect_with_stream(image=face_image, **API_PARAMS)
     except Exception as e:
         print("Services Module:", e)
