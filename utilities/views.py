@@ -5,6 +5,7 @@ from rest_framework.response import Response
 from rest_framework import viewsets
 from rest_framework import permissions
 import json
+import datetime
 
 import services.api
 from .models import UserEmotion, UserKeyword
@@ -14,6 +15,9 @@ from .serializers import UserEmotionSerializer, UserKeywordSerializer
 # send pk to record response later
 class FaceDetect(APIView):
     def post(self, request):
+        '''
+        RETURNS res object (See db for sample return under USER EMOTION) (API Call from services/api/face_detect)
+        '''
         res = services.api.face_detect(request.data.get("path"), request.data.get("choice"))
         print("FACE DETECT RESULT")
         print(res)
@@ -32,7 +36,9 @@ class FaceDetect(APIView):
 # send pk to record response later
 class ChangeDetect(APIView):
     def post(self, request):
-
+        '''
+        RETURNS res object
+        '''
         # Segregation between history just and history all
         JUST_LIM = 4
         ALL_LIM = 24
@@ -83,6 +89,13 @@ def index(request):
 
 # update user emotion response with GET
 def update_user_emotion_response(request, pk, response):
+    '''
+    RETURNS status json
+    '''
+    status = {
+        "status": "OK",
+        "content": "None"
+    }
     try:
         obj = UserEmotion.objects.get(pk=pk)
         obj.response = response
@@ -90,12 +103,21 @@ def update_user_emotion_response(request, pk, response):
         obj.save()
     except Exception as e:
         print(e)
-        return HttpResponse("FAIL")
-    return HttpResponse("OK")
+        status["status"] = "FAIL"
+        status["content"] = str(e) 
+        return HttpResponse(json.dumps(status))
+    return HttpResponse(json.dumps(status))
 
 
 # update user keyword response with GET
 def update_user_keyword_response(request, pk, response):
+    '''
+    RETURNS status json
+    '''
+    status = {
+        "status": "OK",
+        "content": "None"
+    }
     try:
         obj = UserKeyword.objects.get(pk=pk)
         obj.response = response
@@ -103,8 +125,11 @@ def update_user_keyword_response(request, pk, response):
         obj.save()
     except Exception as e:
         print(e)
-        return HttpResponse("FAIL")
-    return HttpResponse("OK")
+        status["status"] = "FAIL"
+        status["content"] = str(e) 
+        return HttpResponse(json.dumps(status))
+    return HttpResponse(json.dumps(status))
+
 
 '''
 RETURN FORMAT FOR ANALYSIS
@@ -125,4 +150,20 @@ RETURN FORMAT FOR ANALYSIS
 '''
 
 def get_analysis_data(request):
-    pass
+    try:
+        cur_date = datetime.date.today()
+        prev_date = cur_date - datetime.timedelta(days=1)
+        
+        res = {
+            "user-keywords": [],
+            "user-emotions": []
+        }
+        
+        # get user keywords
+        objs1= UserKeyword.objects.filter(timestamp__range=[prev_date, cur_date])
+        for obj in objs1:
+            print(obj)
+    except Exception as e:
+        print(e)
+
+    return HttpResponse("OK")
