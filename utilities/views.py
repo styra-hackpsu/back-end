@@ -29,7 +29,7 @@ CHANGE_DETECT_FILE_PATH = './utilities/change_detect_data.txt'
 FACE_DETECT_FILE_PATH = './utilities/face_detect_data.txt'
 # Emotion Call Count Check
 FACE_DETECT_CALL_COUNT = 6
-FACE_DETECT_CALL_THRESHOLD = 0.1 #CHANGE
+FACE_DETECT_CALL_THRESHOLD = 0.6 
 # Segregation between history just and history all
 JUST_LIM = 4
 ALL_LIM = 24
@@ -114,7 +114,14 @@ class FaceDetect(APIView):
                     if cur == "neutral":
                         x /= NEUTRAL_BIAS
                     rankings[cur] = max(rankings[cur], x)
+
+            # filter from rankings
+            for custom_emotion in ORDER_EMOTIONS:
+                if custom_emotion not in ALERT_EMOTIONS:
+                    rankings.pop(custom_emotion)
+                
             major_emotion = sorted(rankings.items(), key=lambda item: item[1], reverse=True)[0]
+
             print("MAJOR EMOTION", major_emotion)
             fres["got_emotion"] = True
             fres["emotion"] = []
@@ -132,7 +139,7 @@ class FaceDetect(APIView):
                     x = obj.emotions["complex-emotion"][cur]
                     crankings[cur] += (x / len(PREDICTION))
             major_cemotion = sorted(crankings.items(), key=lambda item: item[1], reverse=True)[0]
-            if major_cemotion[0] in ALERT_EMOTIONS:
+            if (major_cemotion[0] in ALERT_EMOTIONS) and (major_cemotion[1] > FACE_DETECT_CALL_THRESHOLD):
                 print("MAJOR COMPLEX EMOTION", major_cemotion)
                 fres["emotion"].append(major_cemotion[0])
                 fres["quote"].append(random.choice(services.responses.singled_responses[major_cemotion[0]]))
