@@ -185,5 +185,4 @@ def get_analysis_data(request):
         return HttpResponse(json.dumps(res))
     except Exception as e:
         print(e)
-
-    return HttpResponse("OK")
+        return HttpResponse("FAIL")
