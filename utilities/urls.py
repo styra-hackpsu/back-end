@@ -9,5 +9,6 @@ urlpatterns = [
     path('user-emotions/', views.UserEmotionViewSet.as_view({'get': 'list'})),
     path('user-keywords/', views.UserKeywordViewSet.as_view({'get': 'list'})),
     path('face-detect-response/<int:pk>/<str:response>/', views.update_user_emotion_response, name='update_user_emotion_response'),
-    path('change-detect-response/<int:pk>/<str:response>/', views.update_user_keyword_response, name='update_user_keyword_response')
+    path('change-detect-response/<int:pk>/<str:response>/', views.update_user_keyword_response, name='update_user_keyword_response'),
+    path('analysis/', views.get_analysis_data, name='analysis')
 ]

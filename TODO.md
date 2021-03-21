@@ -18,6 +18,8 @@
         - Surprise
 - Context switch management in db ? Reset history ? 
 - History Just and History all size calibration, edge cases
-- Intermediate Face Detection Model, Return confidence of each class
+- Intermediate Face Detection Model, Return confidence of each class (Dhar needs to freeze requirements)
 - Need to record user response in database ? 
 - Analysis plots ? 
+- Motivation quotes
+- Google (ignore on frontend)

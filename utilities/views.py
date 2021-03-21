@@ -105,3 +105,24 @@ def update_user_keyword_response(request, pk, response):
         print(e)
         return HttpResponse("FAIL")
     return HttpResponse("OK")
+
+'''
+RETURN FORMAT FOR ANALYSIS
+{"user-keywords": [
+    {
+        "timestamp": --,
+        "context-switch: --, (True/False)
+    }
+],
+"user-emotions": [
+    {
+        "timestamp": --,
+        "simple-emotions": {"additional_properties": {}, "anger": 0.0, "contempt": 0.0, "disgust": 0.0, "fear": 0.0, "happiness": 1.0, "neutral": 0.0, "sadness": 0.0, "surprise": 0.0},
+        "complex-emotions": choice from ['non_vigilant', 'tired', 'alert']
+    }
+]
+}
+'''
+
+def get_analysis_data(request):
+    pass
