@@ -19,3 +19,5 @@
 - Context switch management in db ? Reset history ? 
 - History Just and History all size calibration, edge cases
 - Intermediate Face Detection Model
+- Need to record user response in database ? 
+- Analysis plots ? 
