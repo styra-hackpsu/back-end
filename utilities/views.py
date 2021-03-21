@@ -87,7 +87,9 @@ class ChangeDetect(APIView):
         except Exception as e:
             print(f"Exception in get_keywords: {e}")
             return Response({'error': "Could not get keywords."}, status = status.HTTP_400_BAD_REQUEST)
-        
+
+        new_obj = UserKeyword(timestamp=timezone.now(), keywords=json.dumps(current_keywords), url=request.data.get("url"), prediction=change_detected)
+        new_obj.save()
         
         if len(res) < 10:
             res = {"change_detected": "Not Enough Data"}
@@ -97,9 +99,6 @@ class ChangeDetect(APIView):
 
         change_detected = services.api.detect_change(history_all=history_all, history_just=history_just)
         
-        new_obj = UserKeyword(timestamp=timezone.now(), keywords=json.dumps(current_keywords), url=request.data.get("url"), prediction=change_detected)
-        new_obj.save()
-
         print("HISTORY ALL")
         print(history_all)
         print("HISTORY JUST")
@@ -175,7 +174,7 @@ RETURN FORMAT FOR ANALYSIS
 {"user-keywords": [
     {
         "timestamp": --,
-        "context-switch: --, (Yes/No/None)
+        "context-switch: --, (True/False)
         "url": --
     }
 ],
