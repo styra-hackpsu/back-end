@@ -138,7 +138,8 @@ class FaceDetect(APIView):
                 fres["quote"].append(random.choice(services.responses.singled_responses[major_cemotion[0]]))
             
             # IF NOT FOUND
-            fres["got_emotion"] = fres["got_emotion"] and (len(fres["emotion"]) == 0)
+            if len(fres["emotion"]) == 0:
+                fres["got_emotion"] = False
 
         print("FINAL RESPONSE")
         print(fres)
