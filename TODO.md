@@ -24,3 +24,4 @@
 - Motivation quotes (NOT INTERESTED)
 - Google (ignore on frontend)
 - Turn Off Maybe ? 
+- Emotions responses should only be given after continuously 
