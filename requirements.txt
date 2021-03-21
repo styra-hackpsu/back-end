@@ -19,6 +19,7 @@ cycler==0.10.0
 decorator==4.4.2
 defusedxml==0.7.1
 Django==3.1.7
+django-cors-headers==3.7.0
 djangorestframework==3.12.2
 entrypoints==0.3
 flatbuffers==1.12
@@ -30,6 +31,8 @@ grpcio==1.32.0
 h5py==2.10.0
 idna==2.10
 ipykernel==5.5.0
+ipython==7.21.0
+ipython-genutils==0.2.0
 ipywidgets==7.6.3
 isodate==0.6.0
 jedi==0.18.0
