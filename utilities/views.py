@@ -12,6 +12,7 @@ import services.api
 from .models import UserEmotion, UserKeyword
 from .serializers import UserEmotionSerializer, UserKeywordSerializer
 
+# NOTE THE USE OF "None" for features that haven't been recorded
 
 PREDICTION = {0: "alert",  1: "non_vigilant",  2: "tired"}
 
