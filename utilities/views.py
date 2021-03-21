@@ -7,11 +7,18 @@ from rest_framework import permissions
 import math
 import json
 import datetime
+from django.utils import timezone
 
 import services.api
+import services.emotion_model.model
 from .models import UserEmotion, UserKeyword
 from .serializers import UserEmotionSerializer, UserKeywordSerializer
 
+
+# NOTE THE USE OF "None" for features that haven't been recorded
+
+PREDICTION = {0: "alert",  1: "non_vigilant",  2: "tired"}
+ORDER_EMOTIONS = ['anger','contempt','disgust','fear','happiness','neutral','sadness','surprise']
 
 # send pk to record response later
 class FaceDetect(APIView):
@@ -24,12 +31,19 @@ class FaceDetect(APIView):
         print(res)
         
         # TODO: INCLUDE MODEL HERE
-        model_prediction = "alert"
+        model_input = [float(res['emotion'][x]) for x in ORDER_EMOTIONS]
+        print("MODEL INPUT", model_input)
+        model_result = services.emotion_model.model.predict(model_input)
+        model_prediction = dict()
+        for i in range(len(model_result)):
+            model_prediction[PREDICTION[i]] = float(model_result[i])
+        print("MODEL RESULT", list(model_result))
         print("MODEL PREDICTION", model_prediction)
 
         obj = UserEmotion(timestamp=timezone.now(), emotions=res, prediction=model_prediction)
         obj.save()
         res["pk"] = obj.pk;
+        res["complex-emotion"] = model_prediction
 
         return Response(res)     
 
@@ -149,6 +163,7 @@ RETURN FORMAT FOR ANALYSIS
     {
         "timestamp": --,
         "context-switch: --, (True/False)
+        "url": --
     }
 ],
 "user-emotions": [
@@ -163,7 +178,7 @@ RETURN FORMAT FOR ANALYSIS
 
 def get_analysis_data(request):
     try:
-        cur_date = datetime.date.today()
+        cur_date = timezone.now()
         prev_date = cur_date - datetime.timedelta(days=1)
         
         res = {
@@ -172,10 +187,26 @@ def get_analysis_data(request):
         }
         
         # get user keywords
-        objs1= UserKeyword.objects.filter(timestamp__range=[prev_date, cur_date])
+        objs1 = UserKeyword.objects.filter(timestamp__range=[prev_date, cur_date]).order_by('timestamp')
         for obj in objs1:
-            print(obj)
+            res["user-keywords"].append({
+                "timestamp": str(obj.timestamp),
+                "context-switch": obj.response,
+                "url": str(obj.url)
+            })
+
+        # get user emotions
+        objs2 = UserEmotion.objects.filter(timestamp__range=[prev_date, cur_date]).order_by('timestamp')
+        for obj in objs2:
+            res["user-emotions"].append({
+                "timestamp": str(obj.timestamp),
+                "simple-emotions": obj.emotions["emotion"],
+                "complex-emotions": obj.prediction
+            })
+
+        print("ANALYSIS RESULT")
+        print(res)
+        return HttpResponse(json.dumps(res))
     except Exception as e:
         print(e)
-
-    return HttpResponse("OK")
+        return HttpResponse("FAIL")

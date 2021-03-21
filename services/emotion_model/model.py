@@ -1,8 +1,10 @@
 import pandas as pd
 import os 
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 import matplotlib.pyplot as plt
 from tensorflow.python.keras.layers.core import Dropout
 os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
+ 
 
 # Comment when using tensorflow!
 # os.environ["KERAS_BACKEND"] = "plaidml.keras.backend"
@@ -26,7 +28,7 @@ paths = {
 }
 df = {}
 
-save_path = './weights.h5'
+save_path = './services/emotion_model/weights.h5'
 
 x_train = []
 x_test = []
@@ -39,7 +41,10 @@ y_col = 'class'
 
 
 for key, path in paths.items():
-    df[key] = pd.read_csv(path)
+    try:
+        df[key] = pd.read_csv(path)
+    except:
+        df[key] = pd.read_csv(f'./dataset/{key}.csv')
     rows  = len(df[key].index)
 
     is_test = key.split("_")[-1] == 'test'
@@ -61,7 +66,7 @@ for key, path in paths.items():
 
 
 
-
+print("EMOTION MODEL OUTPUT")
 print(f"Processed {len(x_train)} training samples!")
 print(f"Processed {len(x_test)} testing samples!")
 
@@ -94,7 +99,7 @@ try:
     print(f"Loaded weights from {save_path}!")
 except:
     print("Could not load weights! Training from scratch!")
-
+print()
 
 def train():
     hist = model.fit(
@@ -121,8 +126,8 @@ def train():
 def predict(x):
     return model.predict([x])[0]
 
-# Example
-print(predict(
-    # ['anger','contempt','disgust','fear','happiness','neutral','sadness','surprise']
-    [0.2, 0.1, 0.1, 0.1, 0.3,  0.4, 0.0, 0.4]
-))
+# # Example
+# print(predict(
+#     # ['anger','contempt','disgust','fear','happiness','neutral','sadness','surprise']
+#     [0.2, 0.1, 0.1, 0.1, 0.3,  0.4, 0.0, 0.4]
+# ))
