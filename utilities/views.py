@@ -6,6 +6,7 @@ from rest_framework import viewsets
 from rest_framework import permissions
 from rest_framework import status
 
+import math
 import json
 import datetime
 from django.utils import timezone
@@ -64,8 +65,13 @@ class ChangeDetect(APIView):
         # Segregation between history just and history all
         JUST_LIM = 4
         ALL_LIM = 24
+        MIN_ALL_LIM = 10
 
         res = UserKeyword.objects.all().order_by('-timestamp')[:ALL_LIM]
+
+        # Min 3 Max 5 after Min 10 in history_all
+        JUST_LIM = min(max(2, len(res) - MIN_ALL_LIM), 4)
+        
         # maps a url to its json keywords
         history_all = dict()
         for obj in res[JUST_LIM:]:
@@ -77,11 +83,18 @@ class ChangeDetect(APIView):
 
         try:
             current_keywords = services.api.getKeywords(request.data.get("url"))
+            history_just[request.data.get("url")] = current_keywords
         except Exception as e:
             print(f"Exception in get_keywords: {e}")
             return Response({'error': "Could not get keywords."}, status = status.HTTP_400_BAD_REQUEST)
         
-        history_just[request.data.get("url")] = current_keywords
+        
+        if len(res) < 10:
+            res = {"change_detected": "Not Enough Data"}
+            print("CHANGE DETECT RESULT")
+            print(res)       
+            return Response(res)
+
         change_detected = services.api.detect_change(history_all=history_all, history_just=history_just)
         
         new_obj = UserKeyword(timestamp=timezone.now(), keywords=json.dumps(current_keywords), url=request.data.get("url"), prediction=change_detected)
