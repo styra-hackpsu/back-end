@@ -13,8 +13,8 @@ os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
 from tensorflow import keras
 
 
-epochs = 300
-num_classes = 2
+epochs = 1000
+num_classes = 3
 
 paths = {
     'alert_train': '../../dataset/alert_train.csv',
@@ -26,6 +26,7 @@ paths = {
 }
 df = {}
 
+save_path = './weights.h5'
 
 x_train = []
 x_test = []
@@ -69,33 +70,59 @@ print(f"Processed {len(x_test)} testing samples!")
 model = keras.Sequential([
     keras.layers.Input(shape=[len(x_cols)]),
     keras.layers.Dense(256, activation='relu'),    
+    keras.layers.Dropout(0.2),
+    keras.layers.Dense(256, activation='relu'),
+    keras.layers.Dropout(0.2),
+    keras.layers.Dense(256, activation='relu'),
+    keras.layers.Dropout(0.2),
     keras.layers.Dense(128, activation='relu'),
     keras.layers.Dropout(0.2),
-    keras.layers.Dense(64, activation='relu'),
-    keras.layers.Dropout(0.2),
+    keras.layers.Dense(128, activation='relu'),
     keras.layers.Dense(num_classes, activation='softmax')
 ])
 
+
+
 model.compile(
-    optimizer=keras.optimizers.Adam(learning_rate=3e-5),
+    optimizer=keras.optimizers.Adam(learning_rate=1e-4),
     loss="sparse_categorical_crossentropy",
     metrics=["accuracy"],
 )
 
-model.summary()
+try:
+    model.load_weights(save_path)
+    print(f"Loaded weights from {save_path}!")
+except:
+    print("Could not load weights! Training from scratch!")
 
-hist = model.fit(
-    x_train,
-    y_train,
-    shuffle=True,
-    batch_size=256,
-    epochs=epochs,
-    validation_data=(x_test, y_test)
-)
-	
-plt.title("Loss")
-plt.plot(hist.history['loss'])
-plt.show()
-plt.title("Accuracy")
-plt.plot(hist.history['accuracy'])
-plt.show()
+
+def train():
+    hist = model.fit(
+        x_train,
+        y_train,
+        shuffle=True,
+        batch_size=256,
+        epochs=epochs,
+        validation_data=(x_test, y_test)
+    )
+
+    model.save_weights(save_path)
+    print(f"Saved weights at {save_path}")
+
+    plt.title("Loss")
+    plt.plot(hist.history['loss'])
+    plt.show()
+    plt.title("Accuracy")
+    plt.plot(hist.history['accuracy'])
+    plt.show()
+
+
+# Predict takes a single dim with len(x_cols) elements -> each corresponding to respective x_cols[i]!
+def predict(x):
+    return model.predict([x])[0]
+
+# Example
+print(predict(
+    # ['anger','contempt','disgust','fear','happiness','neutral','sadness','surprise']
+    [0.2, 0.1, 0.1, 0.1, 0.3,  0.4, 0.0, 0.4]
+))
