@@ -30,15 +30,19 @@ class FaceDetect(APIView):
         print(res)
         
         # TODO: INCLUDE MODEL HERE
-        model_result = services.emotion_model.model.predict([int(res['emotion'][x]) for x in ORDER_EMOTIONS])
-        print("MODEL RESULT", model_result)
-        # model_prediction = PREDICTION[model_result]
-        model_prediction = {"hey": 12}
-        # print("MODEL PREDICTION", model_prediction)
+        model_input = [float(res['emotion'][x]) for x in ORDER_EMOTIONS]
+        print("MODEL INPUT", model_input)
+        model_result = services.emotion_model.model.predict(model_input)
+        model_prediction = dict()
+        for i in range(len(model_result)):
+            model_prediction[PREDICTION[i]] = float(model_result[i])
+        print("MODEL RESULT", list(model_result))
+        print("MODEL PREDICTION", model_prediction)
 
-        obj = UserEmotion(timestamp=timezone.now(), emotions=res, prediction=json.dumps(model_prediction))
+        obj = UserEmotion(timestamp=timezone.now(), emotions=res, prediction=model_prediction)
         obj.save()
         res["pk"] = obj.pk;
+        res["complex-emotion"] = model_prediction
 
         return Response(res)     
 
