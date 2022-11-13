@@ -43,21 +43,33 @@ MODEL_CHECK_THRESHOLD = 0.90
 class FaceDetect(APIView):
     def post(self, request):
         '''
-        RECORDS res object (See db for sample return under USER EMOTION) (API Call from services/api/face_detect)
-        RETURNS fres (with remedy and emotion)
+            RECORDS res object (See db for sample return under USER EMOTION) (API Call from services/api/face_detect)
+            RETURNS fres (with remedy and emotion)
         '''
+
         try:
             res = services.api.face_detect(request.data.get("path"), request.data.get("choice"))
         except Exception as e:
             print(f"Exception in face_detect: {e}")
             return Response({'error': "Could not detect faces."}, status = status.HTTP_400_BAD_REQUEST)
         
-
-        print("FACE DETECT RESULT")
-        print(res)
+        # Sample API response
+        # res = {
+        #     "emotion": {
+        #         'anger': 0.05,
+        #         'contempt': 0.05,
+        #         'disgust': 0.05,
+        #         'fear': 0.1,
+        #         'happiness': 0.05,
+        #         'neutral': 0.05,
+        #         'sadness': 0.6,
+        #         'surprise': 0.05
+        #     }
+        # }
         
         # TODO: INCLUDE MODEL HERE
-        model_input = [float(res['emotion'][x]) for x in ORDER_EMOTIONS]
+        model_input = [0.2, 0.05, 0.05, 0.05, 0.05, 0.05, 0.5, 0.05]
+        # model_input = [float(res['emotion'][x]) for x in ORDER_EMOTIONS]
         print("MODEL INPUT", model_input)
         model_result = services.emotion_model.model.predict(model_input)
         model_prediction = dict()
@@ -71,15 +83,7 @@ class FaceDetect(APIView):
         obj.save()
         res["pk"] = obj.pk
         
-        # # EXTRACT TOP EMOTION
-        # emotions_complex = list(res["complex-emotion"].items())
-        # emotions_simple = list(res["emotion"].items())
-        # emotions_complex = sorted(emotions_complex, key=lambda item: item[1], reverse=True)
-        # emotions_simple = sorted(emotions_simple, key=lambda item: item[1], reverse=True)
-        # print("EMOTIONS COMPLEX")
-        # print(emotions_complex)
-        # print("EMOTIONS SIMPLE")
-        # print(emotions_simple) 
+
 
         with open(FACE_DETECT_FILE_PATH, "r+") as f:
             data = f.read()
@@ -179,7 +183,7 @@ class ChangeDetect(APIView):
             history_just[obj.url] = obj.keywords
 
         try:
-            current_keywords = services.api.getKeywords(request.data.get("url"))
+            current_keywords = services.api.get_keywords(request.data.get("url"))
             history_just[request.data.get("url")] = current_keywords
         except Exception as e:
             print(f"Exception in get_keywords: {e}")
@@ -188,7 +192,7 @@ class ChangeDetect(APIView):
         with open(CHANGE_DETECT_FILE_PATH, "r+") as f:
             data = f.read()
             if data == '':
-                data = 0        # CP++
+                data = 0        
             data = int(data)
             f.seek(0)
             f.write(str(data - 1))

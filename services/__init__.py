@@ -30,11 +30,13 @@ import os
 from dotenv import load_dotenv
 load_dotenv()
 
+
 KEY = os.getenv("SUBS_KEY")
 ENDPOINT = os.getenv("ENDPOINT")
 
 TEXT_KEY = os.getenv("TEXT_KEY")
 TEXT_ENDPOINT = os.getenv("TEXT_ENDPOINT")
+
 
 # Yake API Details
 YAKE = "http://yake.inesctec.pt/yake/v2/extract_keywords_by_url?url=" 

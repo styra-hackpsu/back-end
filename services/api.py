@@ -63,7 +63,7 @@ def face_detect(face_image: str, is_local: bool) -> json:
 '''
 Returns 20 most important keywords for given link 
 ''' 
-def getKeywords(link):
+def get_keywords(link):
    
     total_keywords = {}
 
@@ -151,6 +151,6 @@ def detect_change(history_all: dict, history_just: dict) -> bool:
         return False
 
     score = count/total
-    print(score) 
+    print("Score", score) 
     return score < THRESHOLD
 
